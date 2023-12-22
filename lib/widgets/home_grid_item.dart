@@ -1,14 +1,18 @@
 import 'package:ecommerce_app/models/item_model.dart';
+import 'package:ecommerce_app/providers/favorites_provider.dart';
 import 'package:ecommerce_app/screens/item_details.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-class HomeGridItem extends StatelessWidget {
+class HomeGridItem extends ConsumerWidget {
   const HomeGridItem({super.key, required this.item});
   final ItemClass item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    var isFav = ref.watch(favoritesProvider).contains(item);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -39,9 +43,11 @@ class HomeGridItem extends StatelessWidget {
                         ),
                   ),
                   InkWell(
-                    onTap: () {},
-                    child: const Icon(
-                      Icons.favorite,
+                    onTap: () {
+                      ref.read(favoritesProvider.notifier).updateFav(item);
+                    },
+                    child: Icon(
+                      isFav ? Icons.favorite : Icons.favorite_border,
                       color: Colors.red,
                       size: 20,
                     ),

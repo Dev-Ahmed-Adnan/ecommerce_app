@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-final kColorScheme = ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 25, 200, 235));
+final kColorScheme = ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 25, 200, 235));
 
 void main() {
   runApp(
@@ -43,6 +43,9 @@ class MyApp extends StatelessWidget {
             backgroundColor: kColorScheme.primaryContainer,
             foregroundColor: kColorScheme.onPrimary,
           ),
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          unselectedItemColor: Colors.black.withOpacity(0.3),
         ),
       ),
       home: const HomeScreen(),

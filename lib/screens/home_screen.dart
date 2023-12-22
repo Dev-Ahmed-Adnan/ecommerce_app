@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:ecommerce_app/providers/data-provider.dart';
+import 'package:ecommerce_app/widgets/CreateBottomBar.dart';
 import 'package:ecommerce_app/widgets/category_tab_item.dart';
 import 'package:ecommerce_app/widgets/home_grid_item.dart';
 import 'package:flutter/material.dart';
@@ -100,12 +101,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           SizedBox(width: 8),
         ],
       ),
+      bottomNavigationBar: const CreateBottomNavigationBar(0),
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Categories", style: Theme.of(context).textTheme.titleLarge),
+            // TabBar(
+            //   // controller: TabController(length: categoryList.length, vsync: vsync),
+            //   tabs: categoryList
+            //       .map((e) => Tab(
+            //             child: Text(e.title),
+            //           ))
+            //       .toList(),
+            // ),
             SizedBox(
               height: 40,
               child: ListView.builder(
