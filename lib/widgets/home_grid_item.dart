@@ -55,10 +55,7 @@ class HomeGridItem extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              SizedBox(
-                height: 90,
-                width: double.infinity,
-                // child: Image.network(item.mainImage),
+              Expanded(
                 child: Hero(
                   tag: item.id,
                   child: FadeInImage(

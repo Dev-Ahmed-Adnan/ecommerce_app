@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:ecommerce_app/providers/data-provider.dart';
 import 'package:ecommerce_app/widgets/CreateBottomBar.dart';
@@ -24,64 +25,96 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<ItemClass> itemsList = [];
   List<ItemClass> filteredList = [];
   late CategoryClass activeTab;
+  var _loading = false;
+  String? error;
 
   @override
   void initState() {
     super.initState();
-
-    _getCategories();
-    // _getItems();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _getCategories());
   }
 
   void _getCategories() async {
-    final url = Uri.parse(APIS.baseUrl + APIS().getCategories);
-
-    final response = await http.get(url);
-
-    if (response.body.isNotEmpty && response.statusCode < 400) {
-      final Map<String, dynamic> listData = json.decode(response.body);
-      final List<CategoryClass> fetchedList = [];
-      for (final item in listData.entries) {
-        fetchedList.add(CategoryClass(id: item.key.toString(), title: item.value["title"]));
-      }
+    if (ref.watch(dataProvider)["categoryList"].isEmpty) {
       setState(() {
-        categoryList = fetchedList;
-        activeTab = fetchedList[0];
+        _loading = true;
       });
-      ref.read(dataProvider.notifier).addToItems(fetchedList, "categoryList");
-      _getItems();
+      try {
+        final url = Uri.parse(APIS.baseUrl + APIS().getCategories);
+
+        final response = await http.get(url);
+
+        if (response.body.isNotEmpty && response.statusCode < 400) {
+          final Map<String, dynamic> listData = json.decode(response.body);
+          final List<CategoryClass> fetchedList = [];
+          for (final item in listData.entries) {
+            fetchedList.add(CategoryClass(id: item.key.toString(), title: item.value["title"]));
+          }
+          setState(() {
+            categoryList = fetchedList;
+            activeTab = fetchedList[0];
+          });
+          ref.read(dataProvider.notifier).addToItems(fetchedList, "categoryList");
+          _getItems();
+        }
+      } catch (e) {
+        print("Get category error: " + e.toString());
+        setState(() {
+          _loading = false;
+        });
+      }
+    } else {
+      setState(() {
+        itemsList = ref.watch(dataProvider)["itemsList"];
+        categoryList = ref.watch(dataProvider)['categoryList'];
+        activeTab = categoryList[0];
+        _setFilteredList(itemsList);
+      });
     }
   }
 
   void _getItems() async {
-    final url = Uri.parse(APIS.baseUrl + APIS().getItems);
+    try {
+      final url = Uri.parse(APIS.baseUrl + APIS().getItems);
 
-    final response = await http.get(url);
+      final response = await http.get(url);
 
-    if (response.body.isNotEmpty && response.statusCode < 400) {
-      final Map<String, dynamic> listData = json.decode(response.body);
-      final List<ItemClass> fetchedList = [];
+      if (response.body.isNotEmpty && response.statusCode < 400) {
+        final Map<String, dynamic> listData = json.decode(response.body);
+        final List<ItemClass> fetchedList = [];
 
-      for (final item in listData.entries) {
-        fetchedList.add(
-          ItemClass(
-            id: item.key,
-            title: item.value["title"],
-            desc: item.value['desc'],
-            category: item.value['category'],
-            mainImage: item.value['mainImage'],
-            price: item.value['price'].toString(),
-            availableColors: item.value["availableColors"],
-          ),
-        );
+        for (final item in listData.entries) {
+          fetchedList.add(
+            ItemClass(
+              id: item.key,
+              title: item.value["title"],
+              desc: item.value['desc'],
+              category: item.value['category'],
+              mainImage: item.value['mainImage'],
+              price: item.value['price'].toString(),
+              availableColors: item.value["availableColors"],
+            ),
+          );
+        }
+        _setFilteredList(fetchedList);
+        setState(() {
+          _loading = false;
+        });
+        ref.read(dataProvider.notifier).addToItems(fetchedList, "itemsList");
       }
-
+    } catch (e) {
+      print("Get items error: " + e.toString());
       setState(() {
-        itemsList = fetchedList;
-        filteredList = fetchedList.where((element) => element.category == categoryList[0].title).toList();
+        _loading = false;
       });
-      ref.read(dataProvider.notifier).addToItems(fetchedList, "itemsList");
     }
+  }
+
+  void _setFilteredList(List<ItemClass> items) {
+    setState(() {
+      itemsList = items;
+      filteredList = items.where((element) => element.category == categoryList[0].title).toList();
+    });
   }
 
   void _setActiveTab(CategoryClass item) {
@@ -108,54 +141,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Categories", style: Theme.of(context).textTheme.titleLarge),
-            // TabBar(
-            //   // controller: TabController(length: categoryList.length, vsync: vsync),
-            //   tabs: categoryList
-            //       .map((e) => Tab(
-            //             child: Text(e.title),
-            //           ))
-            //       .toList(),
-            // ),
-            SizedBox(
-              height: 40,
-              child: ListView.builder(
-                itemCount: categoryList.length,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (ctx, index) {
-                  return CategoryTabItem(
-                    item: categoryList[index],
-                    active: activeTab.id == categoryList[index].id,
-                    onTabItemPress: (item) {
-                      // setState(() {
-                      //   activeTab = item;
-                      // });
-                      _setActiveTab(item);
-                    },
-                  );
-                },
+            if (_loading)
+              Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              )
+            else ...[
+              SizedBox(
+                height: 40,
+                child: ListView.builder(
+                  itemCount: categoryList.length,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (ctx, index) {
+                    return CategoryTabItem(
+                      item: categoryList[index],
+                      active: activeTab.id == categoryList[index].id,
+                      onTabItemPress: (item) {
+                        _setActiveTab(item);
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            Expanded(
-              child: filteredList.isNotEmpty
-                  ? GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 2 / 2.35,
+              Expanded(
+                child: filteredList.isNotEmpty
+                    ? GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 2 / 2.35,
+                        ),
+                        itemCount: filteredList.length,
+                        itemBuilder: (ctx, index) => HomeGridItem(
+                          item: filteredList[index],
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          "No data here, Try another category.",
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
                       ),
-                      itemCount: filteredList.length,
-                      itemBuilder: (ctx, index) => HomeGridItem(
-                        item: filteredList[index],
-                      ),
-                    )
-                  : Center(
-                      child: Text(
-                        "No data here, Try another category.",
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                      ),
-                    ),
-            ),
+              ),
+            ],
           ],
         ),
       ),

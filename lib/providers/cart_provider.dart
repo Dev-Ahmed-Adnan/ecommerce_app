@@ -17,17 +17,16 @@ class CartProviderNotifier extends StateNotifier<List<CartItem>> {
   }
 
   void removeFromCart(int index) {
-    // state = [...state.where((element) => element.item.id != item.item.id)];
     var tempList = state;
     tempList.removeAt(index);
     state = [...tempList];
   }
 
-  void updateCartItemCount(CartItem item, String value) {
+  void updateCartItemCount(CartItem item, String value, int index) {
     var tempList = state;
-    var index = state.indexWhere((element) => element.item.id == item.item.id);
 
     tempList[index].upadteQty(value);
+    print(index);
 
     state = [...tempList];
   }

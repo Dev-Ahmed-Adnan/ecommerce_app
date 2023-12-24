@@ -29,7 +29,7 @@ class _ItemDetailsState extends ConsumerState<ItemDetails> {
   }
 
   void _addToCart() {
-    ref.read(cartProvider.notifier).updateCart(
+    ref.read(cartProvider.notifier).addToCart(
           CartItem(
             item: widget.item,
             qty: _selectedQty,

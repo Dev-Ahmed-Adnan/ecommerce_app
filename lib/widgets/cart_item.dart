@@ -7,8 +7,8 @@ import 'package:transparent_image/transparent_image.dart';
 class CartItemCard extends ConsumerWidget {
   const CartItemCard(this.item, this.index, {super.key});
 
-  final CartItem item;
   final int index;
+  final CartItem item;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,11 +37,14 @@ class CartItemCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text(
-                  item.item.title,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSecondary,
-                      ),
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 200),
+                  child: Text(
+                    item.item.title,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSecondary,
+                        ),
+                  ),
                 ),
                 Text(
                   "\$${item.item.price}",
@@ -58,7 +61,7 @@ class CartItemCard extends ConsumerWidget {
                       child: IconButton(
                         onPressed: () {
                           if (int.parse(item.qty) > 1) {
-                            ref.read(cartProvider.notifier).updateCartItemCount(item, "-1");
+                            ref.read(cartProvider.notifier).updateCartItemCount(item, "-1", index);
                           }
                         },
                         icon: Icon(
@@ -79,7 +82,7 @@ class CartItemCard extends ConsumerWidget {
                       width: 40,
                       child: IconButton(
                         onPressed: () {
-                          ref.read(cartProvider.notifier).updateCartItemCount(item, "+1");
+                          ref.read(cartProvider.notifier).updateCartItemCount(item, "+1", index);
                         },
                         padding: const EdgeInsets.all(4),
                         icon: Icon(
@@ -120,13 +123,18 @@ class CartItemCard extends ConsumerWidget {
                 )
               ],
             ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: FadeInImage(
-                height: 100,
-                width: 100,
-                placeholder: MemoryImage(kTransparentImage),
-                image: NetworkImage(item.item.mainImage),
+            Expanded(
+              child: Hero(
+                tag: item.item.id,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: FadeInImage(
+                    height: 100,
+                    // width: 100,
+                    placeholder: MemoryImage(kTransparentImage),
+                    image: NetworkImage(item.item.mainImage),
+                  ),
+                ),
               ),
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:ecommerce_app/models/cart_item_model.dart';
 import 'package:ecommerce_app/providers/cart_provider.dart';
+import 'package:ecommerce_app/screens/checkout_screen.dart';
 import 'package:ecommerce_app/widgets/CreateBottomBar.dart';
 import 'package:ecommerce_app/widgets/cart_item.dart';
 import 'package:ecommerce_app/widgets/rounded_profile_image.dart';
@@ -24,10 +25,15 @@ class CartScreen extends ConsumerWidget {
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "My Cart",
-            style: Theme.of(context).textTheme.titleLarge,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              "My Cart",
+              textAlign: TextAlign.left,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           ),
           if (items.isNotEmpty)
             Expanded(
@@ -46,11 +52,15 @@ class CartScreen extends ConsumerWidget {
                   }),
             )
           else
-            Text(
-              "No Items Added To Cart!",
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  "No Items Added To Cart!",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                ),
+              ),
             ),
         ],
       ),
@@ -67,6 +77,13 @@ class CartFooter extends StatelessWidget {
 
   final List<CartItem> items;
   final int totalCartValue;
+
+  void _goToCheckout(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (ctx) => const CheckoutScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +118,9 @@ class CartFooter extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            _goToCheckout(context);
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.primary,
             foregroundColor: Theme.of(context).colorScheme.onPrimary,
